@@ -19,7 +19,7 @@ else
     echo "    User $USER" >> ~/.ssh/config
 fi
 
-ssh vm <<'ENDSSH'
+ssh $1 <<'ENDSSH'
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 rm get-docker.sh
@@ -27,7 +27,7 @@ sudo usermod -aG docker $USER
 echo "localhost slots=$(nproc)" > hostfile
 ENDSSH
 
-ssh vm <<'ENDSSH'
+ssh $1 <<'ENDSSH'
 docker pull thebb/ifem
 echo 'ifem () { docker run --cap-add SYS_PTRACE -v$(pwd):/workdir --workdir /workdir thebb/ifem bash -c "$*"; }' >> .bashrc
 ENDSSH

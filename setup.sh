@@ -7,11 +7,17 @@ IP=$(az vm list-ip-addresses --name AutoVM | jq -r '.[0].virtualMachine.network.
 
 ssh-keyscan -H $IP >> ~/.ssh/known_hosts
 
-cat ~/.ssh/config |\
-    tr '\n' '#' |\
-    sed -e "s/\(Host $1#\s*HostName\) [^#]*\(#\s*User\) [^#]*/\1 $IP\2 $USER/" |\
-    tr '#' '\n' > temp
-mv temp ~/.ssh/config
+if grep -Fq "Host $1" ~/.ssh/config; then
+    cat ~/.ssh/config |\
+        tr '\n' '#' |\
+        sed -e "s/\(Host $1#\s*HostName\) [^#]*\(#\s*User\) [^#]*/\1 $IP\2 $USER/" |\
+        tr '#' '\n' > temp
+    mv temp ~/.ssh/config
+else
+    echo "Host $1" >> ~/.ssh/config
+    echo "    HostName $IP" >> ~/.ssh/config
+    echo "    User $USER" >> ~/.ssh/config
+fi
 
 ssh vm <<'ENDSSH'
 curl -fsSL https://get.docker.com -o get-docker.sh

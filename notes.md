@@ -138,41 +138,10 @@ This combines the two in one. It creates a VM and sets up Docker and IFEM there.
 
 Use it like `./setup.sh vm Standard_D2s_v3`. This requires `jq` to be installed.
 
-    #!/bin/sh
-
-    az group create --name AutoGrp --location northeurope
-    az vm create --resource-group AutoGrp --name AutoVM --image UbuntuLTS --ssh-key-values ~/.ssh/id_rsa.pub --size $2
-    USER=$(az vm show --resource-group AutoGrp --name AutoVM | jq -r '.osProfile.adminUsername')
-    IP=$(az vm list-ip-addresses --name AutoVM | jq -r '.[0].virtualMachine.network.publicIpAddresses[0].ipAddress')
-
-    ssh-keyscan -H $IP >> ~/.ssh/known_hosts
-
-    cat ~/.ssh/config |\
-        tr '\n' '#' |\
-        sed -e "s/\(Host $1#\s*HostName\) [^#]*\(#\s*User\) [^#]*/\1 $IP\2 $USER/" |\
-        tr '#' '\n' > temp
-    mv temp ~/.ssh/config
-
-    ssh $1 <<'ENDSSH'
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sudo sh get-docker.sh
-    rm get-docker.sh
-    sudo usermod -aG docker $USER
-    echo "localhost slots=$(nproc)" > hostfile
-    echo 'ifem () { docker run --cap-add SYS_PTRACE -v$(pwd):/workdir --workdir /workdir thebb/ifem bash -c "$*"; }' >> .bashrc
-    ENDSSH
-
-    ssh $1 <<'ENDSSH'
-    docker pull thebb/ifem
-    ENDSSH
+See `setup.sh` in this folder.
 
 ## Ultra convenience teardown script
 
-`./teardown.sh vm`
+Use it like `./teardown.sh vm`.
 
-    #!/bin/sh
-
-    IP=$(az vm list-ip-addresses --name AutoVM | jq -r '.[0].virtualMachine.network.publicIpAddresses[0].ipAddress')
-
-    yes | ssh-keygen -R $IP
-    az group delete --yes --name AutoGrp
+See `teardown.sh` in this folder.
